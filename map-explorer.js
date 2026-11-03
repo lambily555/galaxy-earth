@@ -13,6 +13,7 @@ function feature(name,polys,extra={}){return {type:'Feature',properties:{name,..
 const name=f=>f.properties.ADM0_A3==='CHN'?'中国':f.properties.name||f.properties.NAME_ZH||f.properties.shapeName||f.properties.ADMIN||'区域';
 function bounds(features){let x=180,y=90,X=-180,Y=-90;for(const f of features)for(const p of polygons(f))for(const r of p)for(const [a,b] of r){x=Math.min(x,a);X=Math.max(X,a);y=Math.min(y,b);Y=Math.max(Y,b);}return [x,y,X,Y];}
 function render(){const s=stack.at(-1);if(!s)return;cancelAnimationFrame(frame);zoom=1;hover=null;box=[0,0,1100,680];$('geoMap').setAttribute('viewBox',box.join(' '));$('geoMap').replaceChildren();$('geoTitle').textContent=s.title;$('geoCrumb').textContent='地球 / '+stack.map(x=>x.title).join(' / ');const [x,y,X,Y]=bounds(s.features),k=Math.min(980/Math.max(.01,X-x),560/Math.max(.01,Y-y));const project=([a,b])=>[550+(a-(x+X)/2)*k,340-(b-(y+Y)/2)*k];
+ const area=f=>{const b=bounds([f]);return (b[2]-b[0])*(b[3]-b[1]);};s.features.sort((a,b)=>area(b)-area(a));
  for(const f of s.features){const path=document.createElementNS(NS,'path');path.setAttribute('d',polygons(f).map(p=>p.map(r=>r.map((v,i)=>(i?'L':'M')+project(v).join(',')).join(' ')+'Z').join(' ')).join(' '));path.setAttribute('fill-rule','evenodd');path.setAttribute('class','map-area');path.setAttribute('tabindex','0');path.setAttribute('aria-label',name(f));const title=document.createElementNS(NS,'title');title.textContent=name(f);path.append(title);path.onpointerenter=()=>{hover=f;$('geoHint').textContent=name(f)+' · 点击或滚轮放大进入；向后滚动返回';};path.onclick=()=>enter(f).catch(error);path.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();enter(f).catch(error);}};$('geoMap').append(path);
  const b=bounds([f]),w=(b[2]-b[0])*k,h=(b[3]-b[1])*k;if(w>55&&h>24&&s.features.length<80){const label=document.createElementNS(NS,'text'),p=project([(b[0]+b[2])/2,(b[1]+b[3])/2]);label.setAttribute('x',p[0]);label.setAttribute('y',p[1]);label.setAttribute('class','map-label');label.textContent=name(f);$('geoMap').append(label);}
  }
@@ -35,7 +36,7 @@ ready.catch(error);$('geoBack').onclick=()=>back().catch(error);$('geoHome').onc
  $('geoWrap').addEventListener('wheel',e=>{
   e.preventDefault();if(loading||performance.now()<gate)return;const s=stack.at(-1);if(!s)return;
   const svg=$('geoMap'),p=new DOMPoint(e.clientX,e.clientY).matrixTransform(svg.getScreenCTM().inverse()),paths=[...svg.querySelectorAll('path')];
-  const hit=paths.findIndex(path=>path.isPointInFill(p));const chosen=hit>=0?s.features[hit]:hover;
+  const direct=paths.indexOf(e.target.closest('path')),hit=direct>=0?direct:paths.findLastIndex(path=>path.isPointInFill(p));const chosen=hit>=0?s.features[hit]:hover;
   const old=zoom,delta=e.deltaY*(e.deltaMode===1?16:e.deltaMode===2?innerHeight:1);zoom=Math.max(.65,Math.min(5,zoom*Math.exp(-delta*.003)));
   const ratio=old/zoom;box=[p.x-(p.x-box[0])*ratio,p.y-(p.y-box[1])*ratio,1100/zoom,680/zoom];cancelAnimationFrame(frame);frame=requestAnimationFrame(animateBox);
   if(zoom<.78){gate=performance.now()+450;back().catch(error);}

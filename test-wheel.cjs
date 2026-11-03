@@ -6,7 +6,7 @@ const {_electron}=require('C:/Users/LENOVO/.cache/codex-runtimes/codex-primary-r
  for(let i=0;i<7;i++){if(await page.locator('#exploreView').isVisible())break;await page.mouse.wheel(0,-240);await page.waitForTimeout(300);}
  await page.waitForSelector('#exploreView:not([hidden])');assert.equal(await page.evaluate(()=>atlasExplorer.state().level),'continent');
  async function zoomInto(selector,level){const point=await page.locator(selector).first().evaluate(el=>{const b=el.getBBox();for(let y=.1;y<1;y+=.1)for(let x=.1;x<1;x+=.1){const p=new DOMPoint(b.x+b.width*x,b.y+b.height*y);if(el.isPointInFill(p)){const s=p.matrixTransform(el.getScreenCTM());return {x:s.x,y:s.y};}}throw Error('No interior point');});await page.waitForTimeout(500);await page.mouse.move(point.x,point.y);await page.mouse.wheel(0,-240);await page.waitForFunction(level=>atlasExplorer.state().level===level,level);}
- await zoomInto('#geoMap path[aria-label="中国"]','country');await zoomInto('#geoMap path[aria-label="北京市"]','province');await zoomInto('#geoMap path','city');
+ await zoomInto('#geoMap path[aria-label="中国"]','country');assert.equal(await page.evaluate(()=>atlasExplorer.state().title),'中国');await zoomInto('#geoMap path[aria-label="北京市"]','province');assert.equal(await page.evaluate(()=>atlasExplorer.state().title),'北京市');await zoomInto('#geoMap path','city');
  await page.screenshot({path:path.join(__dirname,'qa/wheel-city.png')});
  for(const level of ['province','country','continent']){await page.waitForTimeout(500);await page.mouse.wheel(0,350);await page.waitForFunction(level=>atlasExplorer.state().level===level,level);}
  await page.waitForTimeout(500);await page.mouse.wheel(0,350);await page.waitForSelector('#spaceView:not([hidden])');
