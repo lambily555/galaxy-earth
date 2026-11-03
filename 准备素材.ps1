@@ -5,6 +5,7 @@ $files = @{
  'china.json' = 'https://raw.githubusercontent.com/zhChuXiao/ChinaGeoJson/master/china.json'
  'geo-license.txt' = 'https://raw.githubusercontent.com/zhChuXiao/ChinaGeoJson/master/LICENSE'
  'land.geojson' = 'https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_land.geojson'
+ 'countries.geojson' = 'https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson'
  'earth.jpg' = 'https://raw.githubusercontent.com/mrdoob/three.js/r160/examples/textures/planets/earth_atmos_2048.jpg'
  'clouds.png' = 'https://raw.githubusercontent.com/mrdoob/three.js/r160/examples/textures/planets/earth_clouds_1024.png'
  'moon.jpg' = 'https://raw.githubusercontent.com/mrdoob/three.js/r160/examples/textures/planets/moon_1024.jpg'

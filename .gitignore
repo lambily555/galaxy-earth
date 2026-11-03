@@ -13,6 +13,7 @@ dist/
 downloads/
 *.log
 assets/*.geojson
+assets/boundary-cache/
 assets/china.json
 assets/provinces/
 assets/*.jpg

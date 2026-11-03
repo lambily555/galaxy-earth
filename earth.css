@@ -4,4 +4,13 @@ body[data-view=space]{overflow:hidden}#spaceView{position:fixed;inset:0;padding:
 .space-brand,.space-caption{display:none}.space-menu{opacity:0;transition:opacity .2s}.space-menu:hover,.space-menu:focus-visible{opacity:1}#spaceMenu:not([hidden])~.space-menu{opacity:1}
 .task-pin{border:0;background:transparent;box-shadow:none;padding:5px;transform:translate(-50%,-100%)}.task-pin:hover{background:transparent;border:0}.pin-arrow{font-size:32px;text-shadow:0 0 12px #b9edff}#taskLabel{display:none;position:absolute;left:38px;top:0;white-space:nowrap;padding:9px 12px;background:#0b1725df;border-radius:5px}.task-pin:hover #taskLabel,.task-pin:focus-visible #taskLabel{display:block}
 .task-pin:active{transform:translate(-50%,-100%)}
+#exploreView{max-width:1500px}#geoWrap{height:calc(100dvh - 190px);min-height:380px;overflow:hidden}#geoMap{width:100%;height:100%;display:block}#geoHint{color:var(--muted);font-size:14px;text-align:center}
+.planet-panel,#spaceMenu{position:fixed;left:auto;right:5vw;top:12vh;width:min(560px,46vw);max-height:76vh;overflow:auto;padding:28px 32px;background:#091320ed;border:1px solid #b3d8ec40;border-radius:12px;z-index:8;box-shadow:0 24px 90px #0008;font-size:16px}
+.planet-panel h1{font-size:27px;margin:0 0 14px}.planet-panel p{line-height:1.8;color:#b6c9d9}.planet-panel table{width:100%;font-size:14px;line-height:1.6;border-collapse:collapse}.planet-panel td,.planet-panel th{padding:10px 8px;text-align:left;border-bottom:1px solid #ffffff18}.planet-panel button,#spaceMenu button{font-size:16px;padding:15px 18px;min-height:48px}#spaceMenu button{border-bottom:1px solid #ffffff12}
+#planetHover{position:fixed;pointer-events:none;background:#0b1725df;padding:9px 14px;border-radius:6px;z-index:4}
+#welcomeKeys{position:fixed;bottom:25px;left:50%;transform:translateX(-50%);padding:10px 18px;background:#091320b0;color:#bfd0df;font-size:13px;pointer-events:none;animation:hideHint 10s forwards;z-index:3;white-space:nowrap}
+@keyframes hideHint{0%,65%{opacity:1}100%{opacity:0;visibility:hidden}}
+#flightLabel{display:none!important}#flatMapWrap{overflow:hidden}#flatMap{transition:opacity .2s}#atlasView{animation:mapReveal .5s ease-out}
+@keyframes mapReveal{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:scale(1)}}
+@media(max-width:900px){.planet-panel,#spaceMenu{right:3vw;width:65vw;padding:20px;top:8vh;max-height:84vh}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}

@@ -1,4 +1,4 @@
-# Python Earth Atlas · Python世界地图
+# galaxy-earth · Python世界地图
 
 从宇宙中的地球出发，用探索地图的方式学习 Python 数据分析。Windows 桌面版，中文课程，本地运行代码和保存学习记录。
 
@@ -12,7 +12,11 @@
 
 计划共42个单元（36学习实操、6阶段测试）。中国的34个省级区域已接入；后8个单元的课程已准备，可通过完整路线学习，但周边地图仍待后续拓展。第一站是北京。
 
-把鼠标移到右上角或按 **Esc** 可唤出探索菜单。**Alt+F4** 退出应用；代码区 **Ctrl+Enter** 运行，**Tab** 缩进，**Ctrl+S** 保存。停笔后自动保存，切换页面和关闭窗口前也会保存。
+**Tab** 前往木星菜单，**F2** 前往土星设置，**Home** 返回地球，**Esc / Alt+F4** 保存后退出。代码区 **Ctrl+Enter** 运行、**Tab** 缩进、**Ctrl+S** 保存。输入文字时保留 Tab 和 Home 的编辑行为。设置页列出完整操作。停笔后自动保存，切换页面和关闭窗口前也会保存。
+
+太阳带有日面和光晕，为地球提供定向光照。星球点击可聚焦；星空使用不同亮度与密度的星点。天体距离与大小为构图调整，不是真实比例或实时星位。每日任务镜头连续推进，不显示阶段字幕。
+
+地图浏览不受学习完成状态限制。点击地球陆地进入所属洲，再点国家、省／州、市／区；滚轮放大深入、缩小返回。中国使用本地边界；其他国家首次通过 geoBoundaries gbOpen 获取 ADM1 / ADM2 并缓存到 D 盘 assets/boundary-cache。数据源缺失或联网失败会明确提示，不作为课程锁定。行政级别依各国制度而异，部分地区不具备市区级数据。世界国家轮廓来自 Natural Earth。
 
 ## 课程范围
 
@@ -50,7 +54,8 @@ pwsh -ExecutionPolicy Bypass -File .\准备桌面版.ps1
 ## 素材来源
 
 - [Three.js](https://github.com/mrdoob/three.js)，MIT；地球、云层、月球影像取自 r160 的 `examples/textures/planets`。见 `vendor/THREE-LICENSE.txt`。
-- [Natural Earth](https://www.naturalearthdata.com/about/terms-of-use/)，公共领域，海陆轮廓。
+- [Natural Earth](https://www.naturalearthdata.com/about/terms-of-use/)，公共领域，海陆与世界国家轮廓。
+- [geoBoundaries gbOpen](https://www.geoboundaries.org/)，国外行政区边界按各数据集的开放许可证提供；首次按需下载，缓存保留来源和许可名称。
 - [ChinaGeoJson](https://github.com/zhChuXiao/ChinaGeoJson)，MIT，省、市、区地理数据。见 `assets/geo-license.txt`。
 - [polygon-clipping](https://github.com/mfogel/polygon-clipping)，MIT，用于合并省内行政区轮廓。见 `vendor/POLYGON-CLIPPING-LICENSE.md`。
 - [Tabler Icons](https://github.com/tabler/tabler-icons)，MIT，桌面图标的 planet 图形。见 `assets/TABLER-LICENSE.txt`。
@@ -59,3 +64,5 @@ pwsh -ExecutionPolicy Bypass -File .\准备桌面版.ps1
 ## 验证
 
 `test-earth.cjs` 使用隐藏的独立测试窗口和独立数据目录，检查地球加载、亚洲过场、34省份、学习分站、自动保存、完成上色、42课程、Python/Pandas运行、图表与错误反馈。另验证过期版本不能覆盖答案。不会弹出测试窗口打断学习，也不改动 SQL 笔记本。
+
+`test-universe.cjs` 检查太阳、星球菜单、快捷键、无字幕连续过场、国外边界下载和安全退出。`test-wheel.cjs` 使用真实滚轮事件验证全景到市／区的完整往返，以及课程地图上的滚轮入口。全部测试窗口均隐藏。

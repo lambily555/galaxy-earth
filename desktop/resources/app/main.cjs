@@ -10,6 +10,15 @@ if(!app.requestSingleInstanceLock())app.quit();else{
   win=new BrowserWindow({width:1480,height:980,minWidth:850,minHeight:650,show:!qa,fullscreen:!qa,frame:false,title:'Python世界地图',backgroundColor:'#03060d',autoHideMenuBar:true,icon:path.join(root,'app-icon.ico'),webPreferences:{preload:path.join(__dirname,'preload.cjs'),contextIsolation:true,nodeIntegration:false,sandbox:true,spellcheck:false,backgroundThrottling:!qa,offscreen:qa}});
   const trusted=event=>{if(event.sender!==win.webContents)throw Error('来源无效');};
   ipcMain.handle('atlas:load',event=>{trusted(event);return store.read();});
+  ipcMain.handle('atlas:close',event=>{trusted(event);setImmediate(()=>win.close());});
+  ipcMain.handle('atlas:boundaries',async(event,p)=>{
+   trusted(event);if(!/^[A-Z]{3}$/.test(p.iso)||!['ADM1','ADM2'].includes(p.level))throw Error('无效地图请求');
+   const folder=path.join(root,'assets','boundary-cache');fs.mkdirSync(folder,{recursive:true});const file=path.join(folder,p.iso+'-'+p.level+'.json');if(fs.existsSync(file))return JSON.parse(fs.readFileSync(file,'utf8'));
+   const get=async url=>{const r=await fetch(url,{signal:AbortSignal.timeout(45000)});if(!r.ok)throw Error('地图数据服务返回 '+r.status);return r.json();};
+   const metadata=await get('https://www.geoboundaries.org/api/current/gbOpen/'+p.iso+'/'+p.level+'/');
+   const url=metadata.simplifiedGeometryGeoJSON||metadata.gjDownloadURL;if(!url||!['www.geoboundaries.org','raw.githubusercontent.com','github.com','media.githubusercontent.com'].includes(new URL(url).hostname))throw Error('该地区暂未提供此级边界数据');
+   const data=await get(url);if(data.type!=='FeatureCollection')throw Error('地图数据格式无效');data.source={provider:'geoBoundaries gbOpen',url,license:metadata.boundaryLicense,licenseSource:metadata.licenseSource,source:metadata.boundarySource,version:metadata.boundaryID};fs.writeFileSync(file,JSON.stringify(data));return data;
+  });
   ipcMain.handle('atlas:save',(event,payload)=>{trusted(event);return store.save(payload);});
   ipcMain.handle('atlas:backup',event=>{trusted(event);const p=path.join(dataRoot,'backups',`manual-${Date.now()}.json`);fs.writeFileSync(p,JSON.stringify(store.read(),null,2));return p;});
   ipcMain.handle('atlas:export',(event,p)=>{trusted(event);if(!Number.isInteger(p.id)||p.id<1||p.id>42)throw Error('无效课程');const folder=path.join(dataRoot,'workspace','exports');fs.mkdirSync(folder,{recursive:true});const name=path.join(folder,`单元${String(p.id).padStart(2,'0')}-${Date.now()}`);fs.writeFileSync(name+'.py',String(p.code??''));fs.writeFileSync(name+'-答案与笔记.txt',String(p.answer??'')+'\n\n'+String(p.notes??''));return name;});

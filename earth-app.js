@@ -12,7 +12,7 @@ function syncWorld(){window.dispatchEvent(new CustomEvent('atlas-progress',{deta
 function changed(){if(loading||current===null)return;dirty=true;editVersion++;$('saved').textContent='未保存';clearTimeout(saveTimer);saveTimer=setTimeout(()=>flush().catch(fail),650);}
 function flush(){clearTimeout(saveTimer);if(!dirty||current===null)return saveChain;const version=editVersion,payload={id:current,code:$('code').value,notes:$('notes').value,answer:$('answer').value,parts:[...parts],status:parts.length===4?'done':'learning'};saveChain=saveChain.catch(()=>{}).then(async()=>{payload.revision=entry(payload.id).revision;state=await window.atlas.save(payload);if(version===editVersion&&current===payload.id){dirty=false;$('saved').textContent='已保存';}syncWorld();});return saveChain;}
 window.flushAtlas=async()=>{await flush();if(dirty)await flush();if(dirty)throw Error('还有未保存的内容');return true;};
-async function view(name){await window.flushAtlas();for(const id of ['spaceView','atlasView','routeView','lessonView'])$(id).hidden=id!==name;document.body.dataset.view=name==='spaceView'?'space':'learning';$('spaceMenu').hidden=true;window.scrollTo(0,0);window.dispatchEvent(new CustomEvent('atlas-view',{detail:name}));}
+async function view(name){await window.flushAtlas();for(const id of ['spaceView','atlasView','routeView','lessonView','exploreView'])$(id).hidden=id!==name;document.body.dataset.view=name==='spaceView'?'space':'learning';$('spaceMenu').hidden=true;$('settingsPanel').hidden=true;$('planetInfo').hidden=true;window.scrollTo(0,0);window.dispatchEvent(new CustomEvent('atlas-view',{detail:name}));}
 function cityStops(p){
  const available=p.cities.filter(c=>c.center);if(available.length<=4)return available;
  // Spread the four learning destinations across the province to avoid overlapping city-center labels.
@@ -50,13 +50,13 @@ $('run').onclick=async()=>{const b=$('run');b.disabled=true;$('output').textCont
 $('code').onkeydown=e=>{if(e.key==='Tab'){e.preventDefault();e.target.setRangeText('    ',e.target.selectionStart,e.target.selectionEnd,'end');changed();}if(e.ctrlKey&&e.key==='Enter'&&!$('run').disabled){e.preventDefault();$('run').click();}};
 $('exportCode').onclick=async()=>{try{notify('草稿已导出：'+await window.atlas.exportDraft({id:current,code:$('code').value,notes:$('notes').value,answer:$('answer').value}));}catch(e){fail(e);}};
 $('clearOutput').onclick=()=>{$('output').textContent='还没有运行代码。';$('plots').replaceChildren();};
-$('menuToggle').onclick=()=>$('spaceMenu').hidden=!$('spaceMenu').hidden;
+$('menuToggle').onclick=()=>window.dispatchEvent(new CustomEvent('atlas-planet',{detail:'jupiter'}));
 $('china').onclick=()=>showChina().catch(fail);$('upMap').onclick=()=>showChina().catch(fail);$('fallbackMap').onclick=()=>showChina().catch(fail);$('routeTab').onclick=()=>showRoute().catch(fail);
 for(const id of ['backSpace','routeBack'])$(id).onclick=()=>view('spaceView').then(syncWorld).catch(fail);
 $('backMap').onclick=()=>current<=34?showProvince(current).catch(fail):showRoute().catch(fail);
 $('backup').onclick=async()=>{try{await flush();notify('备份已保存：'+await window.atlas.backup());}catch(e){fail(e);}};
 $('about').onclick=()=>{$('spaceMenu').hidden=true;$('infoDialog').showModal();};$('closeInfo').onclick=()=>$('infoDialog').close();
-window.addEventListener('keydown',e=>{if(e.ctrlKey&&e.key.toLowerCase()==='s'){e.preventDefault();flush().catch(fail);}if(e.key==='Escape'&&document.body.dataset.view==='space'&&document.body.dataset.flying!=='true')$('spaceMenu').hidden=!$('spaceMenu').hidden;});
-window.earthUI={showProvince,showChina,notify,nextId,entry,syncWorld};
+window.addEventListener('keydown',e=>{if(e.ctrlKey&&e.key.toLowerCase()==='s'){e.preventDefault();flush().catch(fail);}if(e.key==='Escape'){e.preventDefault();window.atlas.close().catch(fail);}if(e.key==='Tab'&&!e.defaultPrevented&&!e.target.matches('input,textarea,[contenteditable=true]')){e.preventDefault();window.dispatchEvent(new CustomEvent('atlas-planet',{detail:'jupiter'}));}if(e.key==='F2'){e.preventDefault();window.dispatchEvent(new CustomEvent('atlas-planet',{detail:'saturn'}));}if(e.key==='Home'&&!e.target.matches('input,textarea,[contenteditable=true]')){e.preventDefault();window.dispatchEvent(new CustomEvent('atlas-planet',{detail:'earth'}));}});
+window.earthUI={showProvince,showChina,showRoute,view,notify,nextId,entry,syncWorld,mapContext:()=>({province:$('upMap').hidden?null:current})};
 (async()=>{try{state=await window.atlas.load();syncWorld();}catch(e){$('sceneLoading').textContent='学习记录读取失败，请保留文件并联系修复。';notify(e.message);}})();
 })();
