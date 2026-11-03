@@ -6,6 +6,8 @@ main.innerHTML='<header class="atlas-bar"><button id="geoBack">返回上一级</
 document.body.append(main);
 const $=id=>document.getElementById(id),stack=[];let countries=[],loading=false,zoom=1,hover=null,gate=0,request=0,frame=0,box=[0,0,1100,680];
 const continents={'Asia':'亚洲','Europe':'欧洲','Africa':'非洲','North America':'北美洲','South America':'南美洲','Oceania':'大洋洲','Antarctica':'南极洲'};
+const chooser=document.createElement('select');chooser.id='continentChoice';chooser.setAttribute('aria-label','选择大洲');for(const [key,title] of Object.entries(continents)){const option=document.createElement('option');option.value=key;option.textContent=title;chooser.append(option);}main.querySelector('.atlas-bar').insertBefore(chooser,$('geoHome'));chooser.onchange=()=>openContinent(chooser.value).catch(error);
+const continentMenu=document.createElement('section');continentMenu.id='continentMenu';const heading=document.createElement('h2');heading.textContent='探索七大洲';continentMenu.append(heading);for(const [key,title] of Object.entries(continents)){const button=document.createElement('button');button.textContent=title;button.dataset.continent=key;button.onclick=()=>openContinent(key).catch(error);continentMenu.append(button);}document.getElementById('spaceMenu').insertBefore(continentMenu,document.getElementById('daily'));
 const polygons=f=>f.geometry.type==='Polygon'?[f.geometry.coordinates]:f.geometry.coordinates;
 function inside([x,y],ring){let b=false;for(let i=0,j=ring.length-1;i<ring.length;j=i++){const [a,c]=ring[i],[d,e]=ring[j];if((c>y)!==(e>y)&&x<(d-a)*(y-c)/(e-c)+a)b=!b;}return b;}
 const contains=(f,p)=>polygons(f).some(poly=>inside(p,poly[0])&&!poly.slice(1).some(r=>inside(p,r)));
@@ -22,6 +24,7 @@ function render(){const s=stack.at(-1);if(!s)return;cancelAnimationFrame(frame);
 function error(e){loading=false;$('geoHint').textContent='此级地图数据暂时无法载入（不是学习限制）：'+e.message+'。可返回或稍后重试。';}
 async function push(s){stack.push(s);await ui.view('exploreView');render();}
 async function enter(f){if(loading)return;const s=stack.at(-1);if(!s||s.level==='city')return;
+ if(s.continent==='Antarctica'){await push({level:'city',title:'南极洲大陆',continent:'Antarctica',features:[f]});$('geoHint').textContent='南极洲没有这里所用的国家、省、市行政层级；可滚轮放大查看大陆轮廓，缩小返回。';return;}
  if(s.level==='continent'){const iso=f.properties.ADM0_A3==='CHN'?'CHN':f.properties.ISO_A3_EH||f.properties.ADM0_A3;if(iso==='CHN'){await push({level:'country',title:'中国',iso,features:provinces.map(p=>feature(p.name,p.polygons,{province:p}))});return;}
  loading=true;const token=++request;$('geoHint').textContent='正在读取 '+name(f)+' 的省／州边界，首次需要联网，之后缓存到 D 盘…';try{const data=await window.atlas.boundaries({iso,level:'ADM1'});if(token!==request)return;await push({level:'country',title:name(f),iso,features:data.features});}finally{loading=false;}return;}
  if(s.level==='country'){if(s.iso==='CHN'){const p=f.properties.province,features=p.cities.filter(c=>c.polygons.length).map(c=>feature(c.name,c.polygons));if(!features.length){ui.notify('此省当前数据未提供市区边界，保留省级浏览。');return;}await push({level:'province',title:p.name,iso:s.iso,features});return;}
@@ -29,7 +32,8 @@ async function enter(f){if(loading)return;const s=stack.at(-1);if(!s||s.level===
  await push({level:'city',title:name(f),iso:s.iso,features:[f]});
 }
 async function back(){request++;loading=false;if(stack.length>1){stack.pop();render();}else{stack.length=0;await ui.view('spaceView');}}
-async function open(lon,lat){await ready;const f=countries.find(f=>contains(f,[lon,lat]));if(!f){ui.notify('这里是海洋。点击陆地可以进入所属洲。');return;}request++;stack.length=0;const c=f.properties.CONTINENT;await push({level:'continent',title:continents[c]||c,features:countries.filter(x=>x.properties.CONTINENT===c)});}
+async function openContinent(c){await ready;if(!continents[c])throw Error('未知大洲');request++;loading=false;stack.length=0;chooser.value=c;await push({level:'continent',continent:c,title:continents[c],features:countries.filter(x=>x.properties.CONTINENT===c)});if(c==='Antarctica')$('geoHint').textContent='南极洲大陆：可点击或滚轮放大浏览，不设国家、省、市层级。';}
+async function open(lon,lat){await ready;const f=countries.find(f=>contains(f,[lon,lat]));if(!f){ui.notify('这里是海洋。点击陆地可以进入所属洲，或按 Tab 在菜单选择七大洲。');return;}await openContinent(f.properties.CONTINENT);}
 const ready=fetch('assets/countries.geojson').then(r=>{if(!r.ok)throw Error('世界地图未安装');return r.json();}).then(d=>countries=d.features);
 ready.catch(error);$('geoBack').onclick=()=>back().catch(error);$('geoHome').onclick=()=>{request++;loading=false;stack.length=0;ui.view('spaceView').catch(error);};
  function animateBox(){const svg=$('geoMap'),v=svg.viewBox.baseVal,values=[v.x,v.y,v.width,v.height].map((n,i)=>n+(box[i]-n)*.3);svg.setAttribute('viewBox',values.join(' '));if(values.some((n,i)=>Math.abs(n-box[i])>.1))frame=requestAnimationFrame(animateBox);else svg.setAttribute('viewBox',box.join(' '));}
@@ -54,5 +58,5 @@ ready.catch(error);$('geoBack').onclick=()=>back().catch(error);$('geoHome').onc
   else if(inward){openChina(Number(target)||Math.min(ui.nextId(),34)).catch(error);}
   else{open(105,35).catch(error);}
  },{passive:false});
- window.atlasExplorer={open,openChina,back,state:()=>({level:stack.at(-1)?.level,title:stack.at(-1)?.title,count:stack.at(-1)?.features.length,zoom})};
+ window.atlasExplorer={open,openContinent,openChina,back,state:()=>({level:stack.at(-1)?.level,title:stack.at(-1)?.title,count:stack.at(-1)?.features.length,zoom})};
 })();
