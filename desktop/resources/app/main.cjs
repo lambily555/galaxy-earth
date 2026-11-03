@@ -7,7 +7,7 @@ if(!app.requestSingleInstanceLock())app.quit();else{
  app.on('second-instance',()=>{if(win){win.restore();win.show();win.focus();}});
  app.whenReady().then(async()=>{
   Menu.setApplicationMenu(Menu.buildFromTemplate([{label:'编辑',submenu:[{role:'undo',label:'撤销'},{role:'redo',label:'重做'},{type:'separator'},{role:'cut',label:'剪切'},{role:'copy',label:'复制'},{role:'paste',label:'粘贴'},{role:'selectAll',label:'全选'}]},{label:'查看',submenu:[{role:'togglefullscreen',label:'全屏'},{role:'resetZoom',label:'实际字号'},{role:'zoomIn',label:'放大字号'},{role:'zoomOut',label:'缩小字号'}]}]));
-  win=new BrowserWindow({width:1480,height:980,minWidth:850,minHeight:650,show:!qa,fullscreen:!qa,frame:false,title:'Python世界地图',backgroundColor:'#03060d',autoHideMenuBar:true,icon:path.join(root,'app-icon.ico'),webPreferences:{preload:path.join(__dirname,'preload.cjs'),contextIsolation:true,nodeIntegration:false,sandbox:true,spellcheck:false,backgroundThrottling:!qa}});
+  win=new BrowserWindow({width:1480,height:980,minWidth:850,minHeight:650,show:!qa,fullscreen:!qa,frame:false,title:'Python世界地图',backgroundColor:'#03060d',autoHideMenuBar:true,icon:path.join(root,'app-icon.ico'),webPreferences:{preload:path.join(__dirname,'preload.cjs'),contextIsolation:true,nodeIntegration:false,sandbox:true,spellcheck:false,backgroundThrottling:!qa,offscreen:qa}});
   const trusted=event=>{if(event.sender!==win.webContents)throw Error('来源无效');};
   ipcMain.handle('atlas:load',event=>{trusted(event);return store.read();});
   ipcMain.handle('atlas:save',(event,payload)=>{trusted(event);return store.save(payload);});
