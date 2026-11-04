@@ -1,0 +1,7 @@
+'use strict';
+const fs=require('node:fs'),path=require('node:path'),read=file=>JSON.parse(fs.readFileSync(path.join(__dirname,'qa',file),'utf8'));
+const admin=read('boundary-geometry-audit.json'),outlines=read('country-outline-geometry.json'),countries={};
+for(const row of admin.results)countries[row.iso]={year:row.year,review:row.review,invalidGeometry:row.invalidOriginalGeometries||0,invalidChildGeometry:row.invalidChildGeometries||0,coordinateErrors:(row.invalidCoordinates||[]).length+(row.invalidChildCoordinates||[]).length,missingPct:row.referenceMissingPct,extraPct:row.referenceExtraPct,weakChildren:row.childrenWithLessThan90PctInOneParent||0,error:row.error};
+for(const row of outlines.results){const entry=countries[row.iso]??={};entry.outlineOriginalValid=row.originalValid;entry.outlineDifferencePct=row.referenceDifferencePct;entry.outlineComparisonUnavailable=!!row.comparisonUnavailable;entry.comparisonSameSource=!!row.sameSource;}
+const result={generated:new Date().toISOString(),method:'自动几何与来源差异检查，不是现行政区或法定国界认证。对照数据可能同源、年代不同、海岸线简化程度不同。',counts:{countryOutlines:outlines.results.length,crossCompared:outlines.results.filter(x=>x.referenceDifferencePct!==undefined).length,admin:admin.results.length,adminReview:admin.results.filter(x=>x.review).length},countries};
+fs.writeFileSync(path.join(__dirname,'boundary-quality.js'),'window.ATLAS_BOUNDARY_QUALITY='+JSON.stringify(result)+';\n');console.log(result.counts);

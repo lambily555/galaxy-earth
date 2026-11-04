@@ -6,9 +6,9 @@ const {_electron}=require('C:/Users/LENOVO/.cache/codex-runtimes/codex-primary-r
  await page.keyboard.press('Tab');await page.waitForSelector('#spaceMenu:not([hidden])');assert.equal(await page.evaluate(()=>atlasScene.getState().focused),'jupiter');await page.keyboard.press('F2');await page.waitForSelector('#settingsPanel:not([hidden])');await page.screenshot({path:path.join(__dirname,'qa/settings-new.png')});
  await page.keyboard.press('Home');await page.waitForFunction(()=>!atlasScene.getState().travel);
  await page.evaluate(()=>atlasExplorer.open(105,35));assert.equal(await page.evaluate(()=>atlasExplorer.state().level),'continent');
- await page.locator('#geoMap path[aria-label="中国"]').click();assert.equal(await page.evaluate(()=>atlasExplorer.state().count),34);
- await page.locator('#geoMap path[aria-label="北京市"]').click();assert.equal(await page.evaluate(()=>atlasExplorer.state().level),'province');
- await page.locator('#geoMap path').first().click();assert.equal(await page.evaluate(()=>atlasExplorer.state().level),'city');await page.screenshot({path:path.join(__dirname,'qa/city-explore.png')});
+ await page.locator('#geoMap path[aria-label="中国"]').click();await page.waitForFunction(()=>!atlasExplorer.state().loading);assert.equal(await page.evaluate(()=>atlasExplorer.state().count),34);
+ await page.locator('#geoMap path[aria-label="北京市"]').click();await page.waitForFunction(()=>!atlasExplorer.state().loading);assert.equal(await page.evaluate(()=>atlasExplorer.state().level),'province');
+ await page.locator('#geoMap path').first().click();await page.waitForFunction(()=>!atlasExplorer.state().loading);assert.equal(await page.evaluate(()=>atlasExplorer.state().level),'city');await page.screenshot({path:path.join(__dirname,'qa/city-explore.png')});
  await page.locator('#geoWrap').hover();await page.mouse.wheel(0,400);await page.waitForFunction(()=>atlasExplorer.state().level==='province');
  await page.click('#geoHome');await page.keyboard.press('Tab');await page.waitForSelector('#spaceMenu:not([hidden])');await page.click('#daily');
  await page.waitForFunction(()=>atlasScene.getState().flight);assert.equal(await page.locator('#flightLabel').isVisible(),false);

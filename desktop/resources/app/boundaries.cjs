@@ -21,7 +21,7 @@ module.exports=function(root){
   // Use the coherent 2020 Regions -> Districts pair rather than reverse that hierarchy.
   return [...unique.values()].filter(x=>iso!=='SYC'||x.level!=='ADM1').sort((a,b)=>a.level.localeCompare(b.level));}
  async function boundaries(p){
-  if(!p||typeof p.iso!=='string'||!/^[A-Z]{3}$/.test(p.iso)||!/^ADM[1-5]$/.test(p.level))throw Error('无效地图请求');
+  if(!p||typeof p.iso!=='string'||!/^[A-Z]{3}$/.test(p.iso)||!/^ADM[0-5]$/.test(p.level))throw Error('无效地图请求');
   const metadata=catalog.layers.find(x=>x.boundaryISO===p.iso&&x.boundaryType===p.level);if(!metadata)throw Error('公开数据源尚未提供该国家的 '+p.level+' 边界');
   return cached(p.iso+'-'+p.level,async()=>{
    const url=metadata.simplifiedGeometryGeoJSON||metadata.gjDownloadURL;
@@ -40,5 +40,10 @@ module.exports=function(root){
    data.source={provider:'ChinaGeoJson',url,license:'MIT',licenseSource:'https://github.com/zhChuXiao/ChinaGeoJson/blob/master/LICENSE'};return data;
   });
  }
- return {levels,boundaries,chinaChildren};
+ async function boundaryFile(p){
+  if(!p||typeof p.iso!=='string'||!/^[A-Z]{3}$/.test(p.iso)||!/^ADM[1-5]$/.test(p.level)||!catalog.layers.some(x=>x.boundaryISO===p.iso&&x.boundaryType===p.level))throw Error('无效地图请求');
+  const file=path.join(folder,p.iso+'-'+p.level+'.json');if(!fs.existsSync(file))await boundaries(p);
+  return require('node:url').pathToFileURL(file).href;
+ }
+ return {levels,boundaries,chinaChildren,boundaryFile};
 };

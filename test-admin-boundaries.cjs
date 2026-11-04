@@ -1,7 +1,7 @@
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const context={};context.window=context;vm.createContext(context);
-for(const file of ['vendor/d3-array.min.js','vendor/d3-geo.min.js','vendor/polygon-clipping.cjs','map-geometry.js'])vm.runInContext(fs.readFileSync(path.join(__dirname,file),'utf8'),context);
+for(const file of ['vendor/d3-array.min.js','vendor/d3-geo.min.js','vendor/polygon-clipping.js','map-geometry.js'])vm.runInContext(fs.readFileSync(path.join(__dirname,file),'utf8'),context);
 const {childrenOf,spherical}=context.ATLAS_MAP_GEOMETRY;
 const square=(name,x,y,X,Y)=>({type:'Feature',properties:{name},geometry:{type:'Polygon',coordinates:[[[x,y],[X,y],[X,Y],[x,Y],[x,y]]]}});
 const left=square('Left',0,0,10,10),right=square('Right',10,0,20,10),parents=[left,right];

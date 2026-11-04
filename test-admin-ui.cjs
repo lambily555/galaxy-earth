@@ -3,7 +3,7 @@ const assert=require('node:assert/strict'),path=require('node:path');
 const {_electron}=require('C:/Users/LENOVO/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
 (async()=>{let app;try{
  app=await _electron.launch({executablePath:path.join(__dirname,'desktop/Python世界地图.exe'),args:['--atlas-qa']});const page=await app.firstWindow(),errors=[];page.on('pageerror',e=>errors.push(e.message));await page.waitForFunction(()=>window.__earthReady,null,{timeout:45000});
- async function choose(text){await page.selectOption('#regionChoice',{label:text});await page.waitForFunction(()=>!atlasExplorer.state().loading,null,{timeout:90000});}
+ async function choose(text){const value=await page.locator('#regionChoice option').evaluateAll((options,text)=>options.find(o=>o.textContent===text||o.dataset.original===text)?.value,text);await page.selectOption('#regionChoice',value);await page.waitForFunction(()=>!atlasExplorer.state().loading,null,{timeout:90000});}
  async function chooseFirst(){const value=await page.locator('#regionChoice option').nth(1).getAttribute('value');await page.selectOption('#regionChoice',value);await page.waitForFunction(()=>!atlasExplorer.state().loading,null,{timeout:90000});}
  await page.evaluate(()=>atlasExplorer.openChina(3));await choose('石家庄市');assert.equal(await page.evaluate(()=>atlasExplorer.state().level),'district',await page.locator('#geoHint').textContent());assert((await page.evaluate(()=>atlasExplorer.state().count))>10);await chooseFirst();assert.equal(await page.evaluate(()=>atlasExplorer.state().level),'city');
  for(const [continent,iso] of [['Europe','FRA'],['North America','USA'],['South America','BRA'],['Asia','JPN'],['Africa','ZAF'],['Oceania','AUS']]){

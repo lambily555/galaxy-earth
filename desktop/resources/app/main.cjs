@@ -22,6 +22,7 @@ if(!app.requestSingleInstanceLock())app.quit();else{
    return {browser:'chrome',url:sites[key]};
   });
   ipcMain.handle('atlas:boundary-levels',(event,iso)=>{trusted(event);return geography.levels(iso);});
+  ipcMain.handle('atlas:boundary-file',(event,p)=>{trusted(event);return geography.boundaryFile(p);});
   ipcMain.handle('atlas:boundaries',(event,p)=>{trusted(event);return geography.boundaries(p);});
   ipcMain.handle('atlas:china-children',(event,p)=>{trusted(event);return geography.chinaChildren(p);});
   ipcMain.handle('atlas:save',(event,payload)=>{trusted(event);return store.save(payload);});

@@ -18,7 +18,7 @@
 
 **Tab** 前往木星菜单，**F2** 前往土星设置，**Home** 返回地球，**Esc / Alt+F4** 保存后退出。代码区 **Ctrl+Enter** 运行、**Tab** 缩进、**Ctrl+S** 保存。输入文字时保留 Tab 和 Home 的编辑行为。设置页列出完整操作。停笔后自动保存，切换页面和关闭窗口前也会保存。
 
-太阳带有日面和光晕，为地球提供定向光照。星球点击可聚焦；星空使用不同亮度与密度的星点、柔和银河光带及少量亮星光晕。银河也是程序生成的示意，不是真实星图。天体距离与大小为构图调整，不是真实比例或实时星位。每日任务镜头连续推进，不显示阶段字幕。
+太阳使用多尺度光球颗粒、暗斑、边缘昏暗和柔和光晕，避免单色圆盘；这是程序生成的表面示意，不是实时太阳观测。太阳为地球提供定向光照。拖动宇宙空白处可改变镜头朝向，拖动地球仍旋转地球，Home 返回地球视角。星球点击可聚焦；星空使用不同亮度与密度的星点、柔和银河光带及少量亮星光晕。银河也是程序生成的示意，不是真实星图。天体距离与大小为构图调整，不是真实比例或实时星位。每日任务镜头连续推进，不显示阶段字幕。
 
 地图浏览不受学习完成状态限制。点击地球陆地进入所属洲，再点国家、省／州、市／区；滚轮放大深入、缩小返回。地图页的“选择地域”列出当前层级的全部区域，小岛和小市区也能直接进入。国家轮廓改用 Natural Earth 1:50m；各洲使用球面投影，南极使用极区视角，跨日期变更线的岛屿不再被拉到地图两端。
 
@@ -29,6 +29,10 @@
 本机已核查并缓存全球清单中可用的一、二级几何数据（约430MB，保存在 D 盘 `assets/boundary-cache`，不上传仓库）；更深层级仍按需下载。源码安装默认按需下载，不要求一次下载全球数据。这些检查不代表全球每个市区都与当前行政区划逐一对照过。
 
 木星菜单内提供 [W3Schools Python](https://www.w3schools.com/python/)（示例与练习）和[菜鸟 Python3](https://www.runoob.com/python3/python3-tutorial.html)（中文讲解）。点击使用本机 Google Chrome 打开，不更改系统默认浏览器；未安装 Chrome 会提示安装，不静默切换其他浏览器。
+
+国外地域名称优先使用 Unicode CLDR 中文名称，并保留原名供核对；没有可靠对应的名称明确标记“中文待核实”，不编造译名。中文词库含5,026项，但不等于全球市区全部已汉化。密集区域按空间避让显示标签，放大可看到更多名称，悬停和地域选择框保留完整名称。台湾归入中国入口，悬停国家显示“中华人民共和国”；台湾省显示20个真实市县边界并支持进一步浏览，金门、连江不计入台湾省列表。
+
+边界读取、裁切和投影在 Web Worker 中处理，避免大型数据阻塞返回、全景和切换大洲。地图底部提供可展开的来源与核验说明。本次检查242个源国家轮廓，222个有可比较的另一来源，另检查202套国家／地区行政数据；151套存在需复核的年份、覆盖范围、上下级归属或几何差异。差异不直接等于边界错误，也不能据此认证为当前官方边界；程序不擅自重绘争议边界。外国数据缺失、历史划分和中文名称缺口仍需持续核对。
 
 ## 课程范围
 
@@ -67,6 +71,7 @@ pwsh -ExecutionPolicy Bypass -File .\准备桌面版.ps1
 
 - [Three.js](https://github.com/mrdoob/three.js)，MIT；地球、云层、月球影像取自 r160 的 `examples/textures/planets`。见 `vendor/THREE-LICENSE.txt`。
 - [Natural Earth](https://www.naturalearthdata.com/about/terms-of-use/)，公共领域，海陆与世界国家轮廓。
+- [Unicode CLDR](https://github.com/unicode-org/cldr)，Unicode-3.0，中文行政区域名称；词库固定版本 `f69257926c43f1cb22cf3fcd93e709a2ca994bb7`，见 `vendor/UNICODE-LICENSE.txt`。
 - [geoBoundaries gbOpen](https://www.geoboundaries.org/)，国外行政区边界按各数据集的开放许可证提供；首次按需下载，缓存保留来源和许可名称。
 - [ChinaGeoJson](https://github.com/zhChuXiao/ChinaGeoJson)，MIT，省、市、区地理数据。见 `assets/geo-license.txt`。
 - [polygon-clipping](https://github.com/mfogel/polygon-clipping)，MIT，用于合并省内行政区轮廓。见 `vendor/POLYGON-CLIPPING-LICENSE.md`。
@@ -84,4 +89,6 @@ pwsh -ExecutionPolicy Bypass -File .\准备桌面版.ps1
 
 更新公开数据目录：运行 `node build-boundary-catalog.cjs`。该操作只刷新 `assets/boundary-catalog.json` 的来源元数据，不下载全球全部几何，也不触碰学习记录。
 
-全量检查：`node audit-global-data.cjs` 逐项校验并缓存清单内可用的一、二级边界；`node test-global-entries.cjs --children` 用隐藏窗口逐一点击七洲的251个国家／地区入口（含跨洲重复），检查地图路径，并对每个有下一层的国外国家选一个省州验证下钻。结果保存在 `qa/global-data-audit.json`、`qa/global-entries.json`，不是后台定时任务，也不等于逐市人工核验。`test-map-status.cjs` 验证加载提示、失败重试、取消后不跳转，以及俄罗斯83个一级区的显示。
+全量检查：`node audit-global-data.cjs` 逐项校验并缓存清单内可用的一、二级边界；`node test-global-entries.cjs --children` 用隐藏窗口逐一点击七洲国家／地区入口（含跨洲重复），检查地图路径，并对每个有下一层的国外国家选一个省州验证下钻。结果保存在 `qa/global-data-audit.json`、`qa/global-entries.json`，不是后台定时任务，也不等于逐市人工核验。`test-map-status.cjs` 验证加载提示、失败重试、取消后不跳转，以及俄罗斯83个一级区的显示。
+
+`test-map-responsiveness.cjs` 检查英国密集标签、西班牙名称及大型数据取消响应；`test-chinese-taiwan-universe.cjs` 检查中文与原名、西班牙译名不串位、台湾市县、背景镜头拖动及太阳着色器。`audit-country-outlines.cjs`、`audit-boundary-geometry.py` 提供来源轮廓对比、几何有效性和上下级覆盖分析；后者需 NumPy、Shapely，分析不会改写原始边界。
