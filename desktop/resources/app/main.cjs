@@ -3,6 +3,7 @@ const {app,BrowserWindow,ipcMain,Menu,dialog}=require('electron'),fs=require('no
 const root=path.resolve(__dirname,'../../..');const qa=process.argv.includes('--atlas-qa');const dataRoot=qa?path.join(root,'qa','desktop-session-'+process.pid):root;
 fs.mkdirSync(path.join(dataRoot,'profile'),{recursive:true});app.setPath('userData',path.join(dataRoot,'profile'));app.setPath('sessionData',path.join(dataRoot,'profile'));app.setPath('logs',path.join(dataRoot,'profile','logs'));app.setName('Python世界地图');app.setAppUserModelId('local.python.learning.atlas');
 const store=require('./store.cjs')(dataRoot);let win,running=null,closing=false;
+const geography=require('./boundaries.cjs')(root);
 if(!app.requestSingleInstanceLock())app.quit();else{
  app.on('second-instance',()=>{if(win){win.restore();win.show();win.focus();}});
  app.whenReady().then(async()=>{
@@ -11,14 +12,18 @@ if(!app.requestSingleInstanceLock())app.quit();else{
   const trusted=event=>{if(event.sender!==win.webContents)throw Error('来源无效');};
   ipcMain.handle('atlas:load',event=>{trusted(event);return store.read();});
   ipcMain.handle('atlas:close',event=>{trusted(event);setImmediate(()=>win.close());});
-  ipcMain.handle('atlas:boundaries',async(event,p)=>{
-   trusted(event);if(!/^[A-Z]{3}$/.test(p.iso)||!['ADM1','ADM2'].includes(p.level))throw Error('无效地图请求');
-   const folder=path.join(root,'assets','boundary-cache');fs.mkdirSync(folder,{recursive:true});const file=path.join(folder,p.iso+'-'+p.level+'.json');if(fs.existsSync(file))return JSON.parse(fs.readFileSync(file,'utf8'));
-   const get=async url=>{const r=await fetch(url,{signal:AbortSignal.timeout(45000)});if(!r.ok)throw Error('地图数据服务返回 '+r.status);return r.json();};
-   const metadata=await get('https://www.geoboundaries.org/api/current/gbOpen/'+p.iso+'/'+p.level+'/');
-   const url=metadata.simplifiedGeometryGeoJSON||metadata.gjDownloadURL;if(!url||!['www.geoboundaries.org','raw.githubusercontent.com','github.com','media.githubusercontent.com'].includes(new URL(url).hostname))throw Error('该地区暂未提供此级边界数据');
-   const data=await get(url);if(data.type!=='FeatureCollection')throw Error('地图数据格式无效');data.source={provider:'geoBoundaries gbOpen',url,license:metadata.boundaryLicense,licenseSource:metadata.licenseSource,source:metadata.boundarySource,version:metadata.boundaryID};fs.writeFileSync(file,JSON.stringify(data));return data;
+  ipcMain.handle('atlas:open-learning-site',async(event,key)=>{
+   trusted(event);const sites={w3schools:'https://www.w3schools.com/python/',runoob:'https://www.runoob.com/python3/python3-tutorial.html'};
+   if(!Object.hasOwn(sites,key))throw Error('无效学习网站');
+   const chrome=[process.env.ProgramW6432,process.env.ProgramFiles,process.env['ProgramFiles(x86)'],process.env.LOCALAPPDATA].filter(Boolean).map(p=>path.join(p,'Google','Chrome','Application','chrome.exe')).find(p=>fs.existsSync(p));
+   if(!chrome)throw Error('未找到 Google Chrome，请先安装谷歌浏览器。');
+   if(qa)return {browser:'chrome',url:sites[key],executable:chrome};
+   await new Promise((resolve,reject)=>{const child=spawn(chrome,[sites[key]],{detached:true,stdio:'ignore',windowsHide:true});child.once('error',reject);child.once('spawn',()=>{child.unref();resolve();});});
+   return {browser:'chrome',url:sites[key]};
   });
+  ipcMain.handle('atlas:boundary-levels',(event,iso)=>{trusted(event);return geography.levels(iso);});
+  ipcMain.handle('atlas:boundaries',(event,p)=>{trusted(event);return geography.boundaries(p);});
+  ipcMain.handle('atlas:china-children',(event,p)=>{trusted(event);return geography.chinaChildren(p);});
   ipcMain.handle('atlas:save',(event,payload)=>{trusted(event);return store.save(payload);});
   ipcMain.handle('atlas:backup',event=>{trusted(event);const p=path.join(dataRoot,'backups',`manual-${Date.now()}.json`);fs.writeFileSync(p,JSON.stringify(store.read(),null,2));return p;});
   ipcMain.handle('atlas:export',(event,p)=>{trusted(event);if(!Number.isInteger(p.id)||p.id<1||p.id>42)throw Error('无效课程');const folder=path.join(dataRoot,'workspace','exports');fs.mkdirSync(folder,{recursive:true});const name=path.join(folder,`单元${String(p.id).padStart(2,'0')}-${Date.now()}`);fs.writeFileSync(name+'.py',String(p.code??''));fs.writeFileSync(name+'-答案与笔记.txt',String(p.answer??'')+'\n\n'+String(p.notes??''));return name;});

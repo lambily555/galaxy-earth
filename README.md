@@ -18,9 +18,15 @@
 
 **Tab** 前往木星菜单，**F2** 前往土星设置，**Home** 返回地球，**Esc / Alt+F4** 保存后退出。代码区 **Ctrl+Enter** 运行、**Tab** 缩进、**Ctrl+S** 保存。输入文字时保留 Tab 和 Home 的编辑行为。设置页列出完整操作。停笔后自动保存，切换页面和关闭窗口前也会保存。
 
-太阳带有日面和光晕，为地球提供定向光照。星球点击可聚焦；星空使用不同亮度与密度的星点。天体距离与大小为构图调整，不是真实比例或实时星位。每日任务镜头连续推进，不显示阶段字幕。
+太阳带有日面和光晕，为地球提供定向光照。星球点击可聚焦；星空使用不同亮度与密度的星点、柔和银河光带及少量亮星光晕。银河也是程序生成的示意，不是真实星图。天体距离与大小为构图调整，不是真实比例或实时星位。每日任务镜头连续推进，不显示阶段字幕。
 
-地图浏览不受学习完成状态限制。点击地球陆地进入所属洲，再点国家、省／州、市／区；滚轮放大深入、缩小返回。中国使用本地边界；其他国家首次通过 geoBoundaries gbOpen 获取 ADM1 / ADM2 并缓存到 D 盘 assets/boundary-cache。数据源缺失或联网失败会明确提示，不作为课程锁定。行政级别依各国制度而异，部分地区不具备市区级数据。世界国家轮廓来自 Natural Earth。
+地图浏览不受学习完成状态限制。点击地球陆地进入所属洲，再点国家、省／州、市／区；滚轮放大深入、缩小返回。地图页的“选择地域”列出当前层级的全部区域，小岛和小市区也能直接进入。国家轮廓改用 Natural Earth 1:50m；各洲使用球面投影，南极使用极区视角，跨日期变更线的岛屿不再被拉到地图两端。
+
+中国省、市边界保存在本地；地级市可继续按需载入区县，直辖市的区县不虚构下一层。香港、澳门入口使用同一套本地省级数据。国外按 geoBoundaries gbOpen 的真实目录逐级请求 ADM1–ADM5，不再固定停在二级；美国的二级是县，不将它统一叫“市”。市区归属按与上级边界的最大重叠面积判定，避免仅仅碰到边界就被归入邻省。数据集可能来自不同年份，查看页保留来源、许可和年份，不承诺实时行政区划。
+
+当前目录包含232个国家／地区条目、715个行政边界数据集：199个有 ADM1，180个有 ADM2，81个有 ADM3，21个有 ADM4，4个有 ADM5。这是数据可用目录，不代表已逐一下载、核验全球每一个市区；几何数据首次访问时下载，随后缓存到 D 盘 `assets/boundary-cache`。缺失层级显示明确提示并保留轮廓；网络失败可重试或返回，不会假装该地区没有下级。南极不套用国家省市层级。
+
+木星菜单内提供 [W3Schools Python](https://www.w3schools.com/python/)（示例与练习）和[菜鸟 Python3](https://www.runoob.com/python3/python3-tutorial.html)（中文讲解）。点击使用本机 Google Chrome 打开，不更改系统默认浏览器；未安装 Chrome 会提示安装，不静默切换其他浏览器。
 
 ## 课程范围
 
@@ -62,6 +68,7 @@ pwsh -ExecutionPolicy Bypass -File .\准备桌面版.ps1
 - [geoBoundaries gbOpen](https://www.geoboundaries.org/)，国外行政区边界按各数据集的开放许可证提供；首次按需下载，缓存保留来源和许可名称。
 - [ChinaGeoJson](https://github.com/zhChuXiao/ChinaGeoJson)，MIT，省、市、区地理数据。见 `assets/geo-license.txt`。
 - [polygon-clipping](https://github.com/mfogel/polygon-clipping)，MIT，用于合并省内行政区轮廓。见 `vendor/POLYGON-CLIPPING-LICENSE.md`。
+- [D3 Geo](https://github.com/d3/d3-geo) 与 [D3 Array](https://github.com/d3/d3-array)，用于球面投影、路径和面积计算；许可见 `vendor/D3-GEO-LICENSE.txt`、`vendor/D3-ARRAY-LICENSE.txt`。
 - [Tabler Icons](https://github.com/tabler/tabler-icons)，MIT，桌面图标的 planet 图形。见 `assets/TABLER-LICENSE.txt`。
 - Electron、Python、Pandas 等依赖各自适用其许可证；下载的桌面运行时保留随附许可证。
 
@@ -70,3 +77,7 @@ pwsh -ExecutionPolicy Bypass -File .\准备桌面版.ps1
 `test-earth.cjs` 使用隐藏的独立测试窗口和独立数据目录，检查地球加载、亚洲过场、34省份、学习分站、自动保存、完成上色、42课程、Python/Pandas运行、图表与错误反馈。另验证过期版本不能覆盖答案。不会弹出测试窗口打断学习，也不改动 SQL 笔记本。
 
 `test-universe.cjs` 检查太阳、星球菜单、快捷键、无字幕连续过场、国外边界下载和安全退出。`test-wheel.cjs` 使用真实滚轮事件验证全景到市／区的完整往返，以及课程地图上的滚轮入口。全部测试窗口均隐藏。
+
+`test-map-render.cjs` 检查七洲几何是否完整拟合、是否有非法路径及南极的极区视角。`test-admin-boundaries.cjs` 验证共享边界、跨日期变更线、最大重叠归属和请求校验；加 `--live` 会检查美、巴、法、日、南非、澳的真实一级／二级样本及中国市辖区。`test-admin-ui.cjs` 使用隐藏窗口验证六洲样本下钻、法国三级、中国区县、返回、地域选择框和 Chrome 链接。样本验证不冒充全球逐市核验。
+
+更新公开数据目录：运行 `node build-boundary-catalog.cjs`。该操作只刷新 `assets/boundary-catalog.json` 的来源元数据，不下载全球全部几何，也不触碰学习记录。
