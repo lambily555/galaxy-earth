@@ -8,6 +8,10 @@ module.exports=root=>{
     const current=read(),old=current.units[payload.id]||{revision:0};
     if(old.revision!==payload.revision)throw Error('此课程已有更新。请先导出当前草稿，再重新打开课程。');
     const value={};for(const k of ['code','notes','answer']){value[k]=String(payload[k]??'');if(value[k].length>500000)throw Error('内容过长，请先导出代码。');}
+    for(const key of ['guided','lastRun']){
+      const extra=payload[key]===undefined?old[key]:payload[key];
+      if(extra!==undefined){const text=JSON.stringify(extra);if(text.length>(key==='guided'?1000000:9000000))throw Error('学习结果过大，请先导出保留');value[key]=JSON.parse(text);}
+    }
     value.parts=[...new Set((payload.parts||[]).filter(n=>Number.isInteger(n)&&n>=0&&n<4))];
     value.status=value.parts.length===4?'done':(['new','learning','review'].includes(payload.status)?payload.status:'learning');value.revision=old.revision+1;value.updatedAt=new Date().toISOString();
     current.units[payload.id]=value;current.revision++;
