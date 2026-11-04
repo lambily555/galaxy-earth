@@ -4,7 +4,12 @@ const ui=window.earthUI,NS='http://www.w3.org/2000/svg',provinces=window.ATLAS_G
 const main=document.createElement('main');main.id='exploreView';main.hidden=true;
 main.innerHTML='<header class="atlas-bar"><button id="geoBack">返回上一级</button><div><small id="geoCrumb"></small><h1 id="geoTitle"></h1></div><button id="geoHome">地球全景</button></header><div id="geoWrap"><svg id="geoMap" viewBox="0 0 1100 680"></svg></div><p id="geoHint">点击地域或向前滚动进入；向后滚动返回。灰色仅表示课程未完成，不限制浏览。</p>';
 document.body.append(main);
+const status=document.createElement('div');status.id='geoStatus';status.hidden=true;status.setAttribute('role','status');status.innerHTML='<span id="geoStatusText"></span><button id="geoRetry" hidden>重试</button><button id="geoCancel">取消等待</button>';main.querySelector('#geoWrap').prepend(status);
 const $=id=>document.getElementById(id),stack=[];let countries=[],continentMaps={},loading=false,zoom=1,hover=null,gate=0,request=0,frame=0,box=[0,0,1100,680];
+let retryAction=null;
+function clearStatus(){status.hidden=true;main.setAttribute('aria-busy','false');retryAction=null;}
+function beginLoading(message,f){loading=true;retryAction=()=>enter(f).catch(error);status.hidden=false;status.dataset.state='loading';$('geoStatusText').textContent=message;$('geoRetry').hidden=true;$('geoCancel').textContent='取消等待';main.setAttribute('aria-busy','true');$('geoHint').textContent=message;}
+$('geoRetry').onclick=()=>retryAction?.();$('geoCancel').onclick=()=>{request++;loading=false;clearStatus();$('geoHint').textContent='已取消等待，可以重新选择地域。';};
 const boundaryData=new Map();function getBoundary(iso,level){const key=iso+'-'+level;if(!boundaryData.has(key))boundaryData.set(key,window.atlas.boundaries({iso,level}).catch(e=>{boundaryData.delete(key);throw e;}));return boundaryData.get(key);}
 const continents={'Asia':'亚洲','Europe':'欧洲','Africa':'非洲','North America':'北美洲','South America':'南美洲','Oceania':'大洋洲','Antarctica':'南极洲'};
 const chooser=document.createElement('select');chooser.id='continentChoice';chooser.setAttribute('aria-label','选择大洲');for(const [key,title] of Object.entries(continents)){const option=document.createElement('option');option.value=key;option.textContent=title;chooser.append(option);}main.querySelector('.atlas-bar').insertBefore(chooser,$('geoHome'));chooser.onchange=()=>openContinent(chooser.value).catch(error);
@@ -14,7 +19,7 @@ const polygons=f=>f.geometry.type==='Polygon'?[f.geometry.coordinates]:f.geometr
 function feature(name,polys,extra={}){return {type:'Feature',properties:{name,...extra},geometry:{type:'MultiPolygon',coordinates:polys}};}
 const name=f=>f.properties.ADM0_A3==='CHN'?'中国':f.properties.name||f.properties.NAME_ZH||f.properties.shapeName||f.properties.ADMIN||'区域';
 function render(){
- const s=stack.at(-1);if(!s)return;cancelAnimationFrame(frame);zoom=1;hover=null;box=[0,0,1100,680];
+ const s=stack.at(-1);if(!s)return;clearStatus();cancelAnimationFrame(frame);zoom=1;hover=null;box=[0,0,1100,680];
  const map=$('geoMap');map.setAttribute('viewBox',box.join(' '));map.replaceChildren();$('geoTitle').textContent=s.title;$('geoCrumb').textContent='地球 / '+stack.map(x=>x.title).join(' / ');
  const layout=window.ATLAS_MAP_GEOMETRY.layout(s.features,s.continent),pathFor=layout.path;
  s.features=layout.features.sort((a,b)=>pathFor.area(b)-pathFor.area(a));const labels=[],occupied=[];
@@ -37,13 +42,14 @@ function render(){
  map.append(...labels);
  $('geoHint').textContent=s.hint||(s.level==='city'?'已到此数据源提供的最细层级。可继续放大查看边界，缩小返回。':'点击地域、选择地域或滚轮放大进入；向后缩小返回。灰色地区同样可以浏览。')+(s.source?' 数据：'+s.source.provider+' · '+(s.source.canonical||s.source.level||'')+' · '+(s.source.year||'')+' · '+s.source.license:'');
 }
-function error(e){loading=false;$('geoHint').textContent='此级地图数据暂时无法载入（不是学习限制）：'+e.message+'。可返回或稍后重试。';}
+function error(e){loading=false;const message='此级地图暂时无法载入：'+e.message+'。这不是学习限制。';$('geoHint').textContent=message;status.hidden=false;status.dataset.state='error';$('geoStatusText').textContent=message;$('geoRetry').hidden=!retryAction;$('geoCancel').textContent='收起';main.setAttribute('aria-busy','false');}
 async function push(s){stack.push(s);await ui.view('exploreView');render();}
 async function enter(f){if(loading)return;const s=stack.at(-1);if(!s||s.level==='city')return;
  if(s.continent==='Antarctica'){await push({level:'city',title:'南极洲大陆',continent:'Antarctica',features:[f]});$('geoHint').textContent='南极洲没有这里所用的国家、省、市行政层级；可滚轮放大查看大陆轮廓，缩小返回。';return;}
- if(s.level==='continent'){const iso=({KOS:'XKX'}[f.properties.ADM0_A3])||[f.properties.ISO_A3_EH,f.properties.ADM0_A3].find(x=>/^[A-Z]{3}$/.test(x));if(iso==='CHN'){await push({level:'country',title:'中国',iso,features:provinces.map(p=>feature(p.name,p.polygons,{province:p}))});return;}
+ if(s.level==='continent'){const iso=({KOS:'XKX',SDS:'SSD',SAH:'ESH',PSX:'PSE',ALD:'ALA'}[f.properties.ADM0_A3])||[f.properties.ADM0_A3,f.properties.ISO_A3_EH].find(x=>/^[A-Z]{3}$/.test(x));if(iso==='CHN'){await push({level:'country',title:'中国',iso,features:provinces.map(p=>feature(p.name,p.polygons,{province:p}))});return;}
  if(iso==='HKG'||iso==='MAC'){const p=provinces.find(p=>p.name===(iso==='HKG'?'香港特别行政区':'澳门特别行政区'));await push({level:'province',title:p.name,iso:'CHN',features:p.cities.filter(c=>c.polygons.length).map(c=>feature(c.name,c.polygons))});return;}
- loading=true;const token=++request;$('geoHint').textContent='正在读取 '+name(f)+' 的行政区边界，首次需要联网，之后缓存到 D 盘…';try{
+ beginLoading('正在读取 '+name(f)+' 的省／州边界，请稍候；首次需要联网，之后缓存到 D 盘。',f);const token=++request;try{
+  if(!window.geographyData?.levels)throw Error('当前窗口仍是旧版主程序，请保存学习内容后重新打开软件一次');
   const levels=iso?await window.geographyData.levels(iso):[];if(token!==request)return;
   if(!levels.length){await push({level:'city',title:name(f),iso,features:[countries.find(c=>c.properties.ADM0_A3===f.properties.ADM0_A3)||f],hint:'公开数据目录暂未提供此国家／地区的下级边界；保留完整轮廓，不虚构省市。'});return;}
   const next=levels[0],data=await getBoundary(iso,next.level);if(token!==request)return;await push({level:'country',title:name(f),iso,adm:Number(next.level.slice(3)),levels,features:data.features,source:data.source});
@@ -51,13 +57,13 @@ async function enter(f){if(loading)return;const s=stack.at(-1);if(!s||s.level===
  if(s.level==='country'){if(s.iso==='CHN'){const p=f.properties.province,features=p.cities.filter(c=>c.polygons.length).map(c=>feature(c.name,c.polygons));if(!features.length){ui.notify('此省当前数据未提供市区边界，保留省级浏览。');return;}await push({level:'province',title:p.name,iso:s.iso,features});return;}
  }
  if(s.iso==='CHN'){
-  loading=true;const token=++request;$('geoHint').textContent='正在读取 '+name(f)+' 的区／县边界…';try{const province=s.chinaProvince||s.title,data=s.level==='province'?await window.geographyData.chinaChildren({province,city:name(f)}):null;if(token!==request)return;
+  beginLoading('正在读取 '+name(f)+' 的区／县边界…',f);const token=++request;try{const province=s.chinaProvince||s.title,data=s.level==='province'?await window.geographyData.chinaChildren({province,city:name(f)}):null;if(token!==request)return;
    if(data)await push({level:'district',title:name(f),iso:s.iso,chinaProvince:province,features:data.features,source:data.source});
    else await push({level:'city',title:name(f),iso:s.iso,features:[f],source:s.source});
   }catch(e){if(token===request)throw e;}finally{if(token===request)loading=false;}return;
  }
  const next=s.levels?.find(x=>Number(x.level.slice(3))>s.adm);if(!next){await push({level:'city',title:name(f),iso:s.iso,features:[f],source:s.source});return;}
- loading=true;const token=++request;$('geoHint').textContent='正在读取 '+name(f)+' 的下一级边界（'+next.level+' / '+next.name+'）…';try{
+ beginLoading('正在读取 '+name(f)+' 的下一级边界（'+next.level+' / '+next.name+'）…',f);const token=++request;try{
   const data=await getBoundary(s.iso,next.level);if(token!==request)return;
   const selected=window.ATLAS_MAP_GEOMETRY.childrenOf(f,data.features,s.features);if(!selected.length)throw Error('该上级区域没有可对应的下级边界，可能是不同年份数据不一致');
   await push({level:next.level==='ADM2'?'province':'district',title:name(f),iso:s.iso,adm:Number(next.level.slice(3)),levels:s.levels,features:selected,source:data.source});

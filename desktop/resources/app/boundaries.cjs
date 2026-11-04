@@ -6,8 +6,8 @@ module.exports=function(root){
  fs.mkdirSync(folder,{recursive:true});
  const valid=data=>data?.type==='FeatureCollection'&&Array.isArray(data.features)&&data.features.length&&data.features.every(f=>['Polygon','MultiPolygon'].includes(f.geometry?.type)&&Array.isArray(f.geometry.coordinates)&&f.geometry.coordinates.length);
  async function get(url,alternatives=[]){
-  const github=url.match(/^https:\/\/github\.com\/([^/]+)\/([^/]+)\/raw\/([^/]+)\/(.+)$/);if(github&&!alternatives.length)alternatives=['https://media.githubusercontent.com/media/'+github.slice(1).join('/')];
-  let last;for(const target of [url,...alternatives,url]){try{const r=await fetch(target,{signal:AbortSignal.timeout(20000),headers:new URL(target).hostname==='api.github.com'?{Accept:'application/vnd.github.raw+json'}:{}});if(!r.ok){const e=Error('地图服务返回 HTTP '+r.status);e.status=r.status;throw e;}return await r.json();}catch(e){last=e;if(e.status&&e.status<500&&!alternatives.length)break;}}
+  const github=url.match(/^https:\/\/github\.com\/([^/]+)\/([^/]+)\/raw\/([^/]+)\/(.+)$/),targets=github&&!alternatives.length?['https://media.githubusercontent.com/media/'+github.slice(1).join('/'),url]:[url,...alternatives,url];
+  let last;for(const target of targets){try{const r=await fetch(target,{signal:AbortSignal.timeout(20000),headers:new URL(target).hostname==='api.github.com'?{Accept:'application/vnd.github.raw+json'}:{}});if(!r.ok){const e=Error('地图服务返回 HTTP '+r.status);e.status=r.status;throw e;}return await r.json();}catch(e){last=e;}}
   throw last;
  }
  async function cached(key,load){
@@ -16,7 +16,10 @@ module.exports=function(root){
   const job=(async()=>{const data=await load();if(!valid(data))throw Error('此级没有可显示的行政区边界');const temp=file+'.'+process.pid+'.tmp';fs.writeFileSync(temp,JSON.stringify(data));fs.renameSync(temp,file);return data;})();
   pending.set(key,job);try{return await job;}finally{pending.delete(key);}
  }
- function levels(iso){if(typeof iso!=='string'||!/^[A-Z]{3}$/.test(iso))throw Error('无效国家代码');return catalog.layers.filter(x=>x.boundaryISO===iso&&x.boundaryType!=='ADM0').map(x=>({level:x.boundaryType,name:x.boundaryCanonical||x.boundaryType,count:Number(x.admUnitCount),year:x.boundaryYearRepresented}));}
+ function levels(iso){if(typeof iso!=='string'||!/^[A-Z]{3}$/.test(iso))throw Error('无效国家代码');const unique=new Map();for(const x of catalog.layers.filter(x=>x.boundaryISO===iso&&x.boundaryType!=='ADM0'))if(!unique.has(x.boundaryType))unique.set(x.boundaryType,{level:x.boundaryType,name:x.boundaryCanonical&&x.boundaryCanonical!=='Unknown'?x.boundaryCanonical:'第'+x.boundaryType.slice(3)+'级行政区',count:Number(x.admUnitCount),year:x.boundaryYearRepresented});
+  // Seychelles' older ADM1 contains districts, not parents of the newer regions.
+  // Use the coherent 2020 Regions -> Districts pair rather than reverse that hierarchy.
+  return [...unique.values()].filter(x=>iso!=='SYC'||x.level!=='ADM1').sort((a,b)=>a.level.localeCompare(b.level));}
  async function boundaries(p){
   if(!p||typeof p.iso!=='string'||!/^[A-Z]{3}$/.test(p.iso)||!/^ADM[1-5]$/.test(p.level))throw Error('无效地图请求');
   const metadata=catalog.layers.find(x=>x.boundaryISO===p.iso&&x.boundaryType===p.level);if(!metadata)throw Error('公开数据源尚未提供该国家的 '+p.level+' 边界');

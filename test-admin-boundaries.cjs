@@ -14,6 +14,7 @@ const catalog=JSON.parse(fs.readFileSync(path.join(__dirname,'assets/boundary-ca
 for(const row of catalog.layers){assert(/^[A-Z]{3}$/.test(row.boundaryISO));assert(/^ADM[0-5]$/.test(row.boundaryType));assert(row.boundaryLicense);assert(row.simplifiedGeometryGeoJSON||row.gjDownloadURL);}
 const service=require('./desktop/resources/app/boundaries.cjs')(__dirname);
 assert.equal(service.levels('FRA').at(-1).level,'ADM5');assert.equal(service.levels('USA').at(-1).level,'ADM2');assert.throws(()=>service.levels('../USA'));
+assert.deepEqual(service.levels('SYC').map(x=>x.level),['ADM2','ADM3']);assert.equal(service.levels('IND').filter(x=>x.level==='ADM1').length,1);
 (async()=>{
  await assert.rejects(service.boundaries({iso:'USA',level:'ADM6'}));await assert.rejects(service.boundaries({iso:'ZZZ',level:'ADM1'}));await assert.rejects(service.chinaChildren({province:'../test',city:'x'}));
  if(process.argv.includes('--live')){
