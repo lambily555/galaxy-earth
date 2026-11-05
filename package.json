@@ -3,6 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "description": "从中国出发的 Python 地球探索学习桌面应用",
-  "scripts": {"assets": "pwsh -File 准备素材.ps1", "start": "electron desktop/resources/app/main.cjs", "test": "node test-earth.cjs && node test-universe.cjs && node test-wheel.cjs"},
+  "scripts": {"assets": "pwsh -File 准备素材.ps1", "start": "electron desktop/resources/app/main.cjs", "test": "node test-earth.cjs && node test-universe.cjs && node test-wheel.cjs && node test-solar-system.cjs"},
   "devDependencies": {"electron": "37.10.3", "playwright": "1.56.1"}
 }
