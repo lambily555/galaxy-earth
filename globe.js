@@ -29,10 +29,10 @@ function startFlight(id){if(flight||travel)return;if(id>34){ui.notify('周边地
 function finishFlight(){if(!flight)return;const id=flight.id;flight=null;document.body.dataset.flying='false';$('cloudVeil').style.opacity=0;$('flightLabel').hidden=true;$('skipFlight').hidden=true;ui.showProvince(id).catch(e=>ui.notify(e.message));}
 function setPaused(value){paused=!!value;$('pause').textContent=paused?'继续自转与公转':'暂停自转与公转';}
 function updateSolarSystem(dt){
- if(!solarSystem||paused||reduced.matches||flight||travel||drag||hoveringLabel)return;
+ if(!solarSystem||paused||reduced.matches||flight||travel||hoveringLabel)return;
  const before=solarSystem.target(focused)?.clone();solarSystem.step(dt);
  const after=solarSystem.target(focused);if(before&&after){const shift=after.clone().sub(before);camera.position.add(shift);look.add(shift);camera.lookAt(look);}
- if(zoomGoal===null&&(focused!=='earth'||camera.position.distanceTo(earthGroup.position)>7.5)){earthGroup.rotateOnWorldAxis(new THREE.Vector3(0,1,0),dt*.028);clouds.rotation.y+=dt*.006;}
+ if(!drag&&zoomGoal===null&&(focused!=='earth'||camera.position.distanceTo(earthGroup.position)>7.5)){earthGroup.rotateOnWorldAxis(new THREE.Vector3(0,1,0),dt*.028);clouds.rotation.y+=dt*.006;}
  for(const p of solarSystem.entries)if(p.id!=='earth')p.object.rotation.y+=dt*(p.id==='venus'?-.08:.12);
 }
 function createPlanetPins(){
