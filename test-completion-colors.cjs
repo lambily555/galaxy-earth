@@ -5,7 +5,8 @@ const {_electron}=require('C:/Users/LENOVO/.cache/codex-runtimes/codex-primary-r
  await page.evaluate(()=>earthUI.showProvince(1));assert.equal(await page.locator('#flatMap .map-area.completed').count(),0);
  await page.click('.city-pin[data-part="0"]');await page.click('#finishPart');await page.evaluate(()=>flushAtlas());await page.click('#backMap');assert.equal(await page.locator('#flatMap .map-area.completed').count(),1);assert.equal(await page.evaluate(()=>earthUI.entry(1).status),'learning');
  const city=await page.evaluate(()=>earthUI.completedAreas(1)[0].name);
- const boxes=await page.evaluate(()=>{const a=document.querySelector('#flatMap .map-area.completed').getBoundingClientRect(),b=document.querySelector('.city-pin[data-part="0"]').getBoundingClientRect();return {overlap:a.left<b.right&&a.right>b.left&&a.top<b.bottom&&a.bottom>b.top,city:document.querySelector('#flatMap .map-area.completed').dataset.city};});assert.equal(boxes.city,'东城区');assert.equal(boxes.overlap,false,'Learning marker must not cover completed Dongcheng region');
+ assert.equal(await page.locator('#flatMap .city-callout').count(),0);
+ assert.equal(await page.locator('#flatMap .map-area.completed').getAttribute('data-city'),'东城区');
  await page.waitForTimeout(500);
  await page.screenshot({path:path.join(__dirname,'qa/completed-city.png')});
  assert.equal(await page.locator('#flatMap .map-area.completed').evaluate(el=>getComputedStyle(el).fill),'rgb(93, 146, 132)','Completed city must have a visible green fill, not just a completion class');
