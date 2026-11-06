@@ -1,0 +1,19 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
+const {_electron}=require('C:/Users/LENOVO/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+(async()=>{const real=fs.readFileSync(path.join(__dirname,'data/progress.json'),'utf8');let app;try{
+ app=await _electron.launch({executablePath:path.join(__dirname,'desktop/Python世界地图.exe'),args:['--atlas-qa']});const page=await app.firstWindow();const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.waitForFunction(()=>window.__earthReady,null,{timeout:45000});
+ await page.evaluate(()=>earthUI.showProvince(1));assert.equal(await page.locator('#flatMap .map-area.completed').count(),0);
+ await page.click('.city-pin[data-part="0"]');await page.click('#finishPart');await page.evaluate(()=>flushAtlas());await page.click('#backMap');assert.equal(await page.locator('#flatMap .map-area.completed').count(),1);assert.equal(await page.evaluate(()=>earthUI.entry(1).status),'learning');
+ const city=await page.evaluate(()=>earthUI.completedAreas(1)[0].name);
+ const boxes=await page.evaluate(()=>{const a=document.querySelector('#flatMap .map-area.completed').getBoundingClientRect(),b=document.querySelector('.city-pin[data-part="0"]').getBoundingClientRect();return {overlap:a.left<b.right&&a.right>b.left&&a.top<b.bottom&&a.bottom>b.top,city:document.querySelector('#flatMap .map-area.completed').dataset.city};});assert.equal(boxes.city,'东城区');assert.equal(boxes.overlap,false,'Learning marker must not cover completed Dongcheng region');
+ await page.waitForTimeout(500);
+ await page.screenshot({path:path.join(__dirname,'qa/completed-city.png')});
+ assert.equal(await page.locator('#flatMap .map-area.completed').evaluate(el=>getComputedStyle(el).fill),'rgb(93, 146, 132)','Completed city must have a visible green fill, not just a completion class');
+ await page.evaluate(()=>atlasExplorer.openContinent('Asia'));await page.locator('#geoMap path[data-iso="CHN"]').dispatchEvent('click');await page.waitForFunction(()=>document.getElementById('geoTitle').textContent==='中国'&&!document.querySelector('#exploreView[aria-busy="true"]'));
+ await page.locator('#geoMap path[aria-label="北京市"]').dispatchEvent('click');await page.waitForFunction(()=>document.getElementById('geoTitle').textContent==='北京市'&&!document.querySelector('#exploreView[aria-busy="true"]'));
+ assert.equal(await page.locator('#geoMap path[data-learning-complete="true"]').count(),1);assert.equal(await page.locator('#geoMap path[data-learning-complete="true"]').getAttribute('aria-label'),city);
+ await page.reload();await page.waitForFunction(()=>window.__earthReady,null,{timeout:45000});await page.evaluate(()=>earthUI.showProvince(1));assert.equal(await page.locator('#flatMap .map-area.completed').count(),1);
+ await page.click('.city-pin[data-part="0"]');await page.click('#finishPart');await page.click('#backMap');assert.equal(await page.locator('#flatMap .map-area.completed').count(),0);
+ await page.click('.city-pin[data-part="0"]');for(let i=0;i<4;i++){await page.locator('#cityTabs button').nth(i).click();await page.click('#finishPart');await page.evaluate(()=>flushAtlas());}await page.click('#backMap');assert.equal(await page.locator('#flatMap .map-area.completed').count(),await page.locator('#flatMap .map-area').count());await page.click('#upMap');assert.equal(await page.locator('#flatMap .map-area.completed').count(),1);
+ assert.deepEqual(errors,[]);assert.equal(fs.readFileSync(path.join(__dirname,'data/progress.json'),'utf8'),real);console.log('PASS: partial city color in both maps, persisted reload, undo color, completed province, real learning data unchanged.');
+ }finally{if(app)await app.evaluate(({app})=>app.exit(0));}})().catch(e=>{console.error(e);process.exitCode=1;});

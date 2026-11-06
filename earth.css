@@ -42,4 +42,8 @@ body[data-view=learning] #welcomeKeys{display:none}
 .planet-pin:hover,.planet-pin:focus-visible{background:#263e50;border-color:#c5e7ef}
 .planet-pin:active{transform:translate(-50%,13px)}
 body[data-planet=solar] #welcomeKeys{display:none}
+#flatMap .map-area.completed{fill:#5d9284;stroke:#b4e5cf;stroke-width:1.2}
+.city-callout{stroke:#b4e5cf;stroke-width:1.5;stroke-dasharray:4 3;pointer-events:none;vector-effect:non-scaling-stroke}
+#flatMap .map-area.completed[data-city]{fill:#5d9284;stroke:#b4e5cf;stroke-width:2.5}
+#flatMap .map-area.completed:hover,#flatMap .map-area.completed:focus{fill:#70aa97;stroke:#e2fff1}
 #solarScaleNote{position:absolute;bottom:34px;left:50%;transform:translateX(-50%);max-width:90%;color:#aebdca;font-size:11px;line-height:1.7;text-align:center;pointer-events:none}
