@@ -5,6 +5,6 @@ app=await _electron.launch({executablePath:path.join(__dirname,'desktop/Pythonä¸
 assert.equal(await page.locator('#minimizeApp').count(),1);assert.equal(await page.locator('#exitApp').count(),1);
 await page.evaluate(()=>document.getElementById('minimizeApp').click());
 await page.waitForTimeout(600);assert(await app.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows()[0].isMinimized()));
-await app.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows()[0].restore());await page.keyboard.press('F9');await page.waitForTimeout(600);assert(await app.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows()[0].isMinimized()));
-assert.equal(fs.readFileSync(path.join(__dirname,'data/progress.json'),'utf8'),before);console.log('PASS: button and F9 minimize window, restore works, exit retained, real data unchanged.');
+await app.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows()[0].restore());await page.keyboard.press('F1');await page.waitForTimeout(600);assert(await app.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows()[0].isMinimized()));
+assert.equal(fs.readFileSync(path.join(__dirname,'data/progress.json'),'utf8'),before);console.log('PASS: button and F1 minimize window, restore works, exit retained, real data unchanged.');
 }finally{if(app)await app.evaluate(({app})=>app.exit(0));}})().catch(e=>{console.error(e);process.exitCode=1;});
