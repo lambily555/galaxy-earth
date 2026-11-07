@@ -14,6 +14,7 @@ if(!app.requestSingleInstanceLock())app.quit();else{
   ipcMain.handle('atlas:load',event=>{trusted(event);return store.read();});
   ipcMain.handle('atlas:check-guided',(event,p)=>{trusted(event);return checkGuided(p);});
   ipcMain.handle('atlas:close',event=>{trusted(event);setImmediate(()=>win.close());});
+  ipcMain.handle('atlas:minimize',event=>{trusted(event);win.minimize();});
   ipcMain.handle('atlas:open-learning-site',async(event,key)=>{
    trusted(event);const sites={w3intro:'https://www.w3schools.com/python/python_intro.asp',w3start:'https://www.w3schools.com/python/python_getstarted.asp',w3syntax:'https://www.w3schools.com/python/python_syntax.asp',w3print:'https://www.w3schools.com/python/python_output.asp',w3schools:'https://www.w3schools.com/python/',runoob:'https://www.runoob.com/python3/python3-tutorial.html'};
    if(!Object.hasOwn(sites,key))throw Error('无效学习网站');

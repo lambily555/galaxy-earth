@@ -1,4 +1,5 @@
 const {contextBridge,ipcRenderer}=require('electron');
+contextBridge.exposeInMainWorld('atlasWindow',Object.freeze({minimize:()=>ipcRenderer.invoke('atlas:minimize')}));
 contextBridge.exposeInMainWorld('guidedCheck',Object.freeze({check:p=>ipcRenderer.invoke('atlas:check-guided',p)}));
 contextBridge.exposeInMainWorld('geographyData',Object.freeze({levels:iso=>ipcRenderer.invoke('atlas:boundary-levels',iso),boundaryFile:p=>ipcRenderer.invoke('atlas:boundary-file',p),chinaChildren:p=>ipcRenderer.invoke('atlas:china-children',p)}));
 contextBridge.exposeInMainWorld('learningSites',Object.freeze({open:key=>ipcRenderer.invoke('atlas:open-learning-site',key)}));
