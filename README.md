@@ -112,3 +112,6 @@ Python世界地图独立安装在 `D:\Python世界地图`，不属于 SQL 紫笺
 全量检查：`node audit-global-data.cjs` 逐项校验并缓存清单内可用的一、二级边界；`node test-global-entries.cjs --children` 用隐藏窗口逐一点击七洲国家／地区入口（含跨洲重复），检查地图路径，并对每个有下一层的国外国家选一个省州验证下钻。结果保存在 `qa/global-data-audit.json`、`qa/global-entries.json`，不是后台定时任务，也不等于逐市人工核验。`test-map-status.cjs` 验证加载提示、失败重试、取消后不跳转，以及俄罗斯83个一级区的显示。
 
 `test-map-responsiveness.cjs` 检查英国密集标签、西班牙名称及大型数据取消响应；`test-chinese-taiwan-universe.cjs` 检查中文与原名、西班牙译名不串位、台湾市县、背景镜头拖动及太阳着色器。`audit-country-outlines.cjs`、`audit-boundary-geometry.py` 提供来源轮廓对比、几何有效性和上下级覆盖分析；后者需 NumPy、Shapely，分析不会改写原始边界。
+
+## 2026-11-19 · 1.1.0
+同步当前桌面使用版本：扩展入门教材、每日练习窗口、知识笔记与学习统计，以及地图交互修正。每日安排为内置示例，不是后台自动更新课程；公开版不包含个人答案、学习进度或统计。Releases提供Windows完整便携版，解压后运行打开Python世界地图.cmd。

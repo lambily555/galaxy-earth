@@ -9,7 +9,7 @@ function code(){return (progress.history||[]).filter(h=>h.status==='correct'||h.
 function render(){
  const host=$('guidedLesson');if(!host||!progress)return;
  const e=exercise(),done=progress.index>=e.steps.length,current=e.steps[progress.index];
- host.innerHTML='<h3>先做一道逐句理解题</h3><p class="guided-demand">'+esc(e.requirement)+'</p><p class="helper">一段需求，分句完成。变量名按题目约定；每次写一个步骤，循环／函数等代码块可以多行。提交用 Ctrl+Enter，也可点按钮。不会在打字中途判错。</p><p>第 '+Math.min(progress.index+1,e.steps.length)+' / '+e.steps.length+' 步'+(done?' · 已完成':'')+'</p>'+
+host.innerHTML='<h3>先做一道逐句理解题</h3><p class="guided-demand" data-timer-question="PY-U'+id+'-GUIDED">'+esc(e.requirement)+'</p><p class="helper">一段需求，分句完成。变量名按题目约定；每次写一个步骤，循环／函数等代码块可以多行。提交用 Ctrl+Enter，也可点按钮。不会在打字中途判错。</p><p>第 '+Math.min(progress.index+1,e.steps.length)+' / '+e.steps.length+' 步'+(done?' · 已完成':'')+'</p>'+
  (done?'<p>完整代码已拼好，可以运行查看结果，再做下方原有练习。采用过参考写法的步骤会保留记录，不算独立答对。</p>':'<label for="guidedInput">'+esc(current.prompt)+'</label><textarea id="guidedInput" spellcheck="false" aria-describedby="guidedFeedback"></textarea><button id="guidedSubmit" class="primary">判断这一句</button>')+
  '<p id="guidedFeedback" role="status">'+esc(feedback)+'</p>'+(reference?'<p>当前步骤参考写法：</p><pre>'+esc(reference)+'</pre><button id="guidedAdopt">采用参考并继续（记为纠正）</button>':'')+
  '<details><summary>查看逐句作答记录</summary>'+progress.history.map(h=>'<p>第'+(h.index+1)+'步 · '+esc(h.status==='correct'?'答对':h.status==='corrected'?'采用参考':'未通过／待复核')+'</p><pre>'+esc(h.answer)+'</pre><p>'+esc(h.feedback)+'</p>').join('')+'</details><h4>目前拼好的代码</h4><pre id="guidedCode">'+esc(code()||'完成第一句后，代码会出现在这里。')+'</pre><button id="guidedRun" '+(code()?'':'disabled')+'>运行目前代码，结果显示在右侧</button><p class="helper">本地规则核对语法结构，支持空格、引号、注释等差异；无法确认的其他写法标为待复核，不冒充AI理解。</p>';

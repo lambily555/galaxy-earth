@@ -1,0 +1,37 @@
+
+#learningStatsPanel{--ls-bg:#fffaf1;--ls-fg:#44384b;--ls-line:#d6c7d9;--ls-accent:#695482;color:var(--ls-fg);background:var(--ls-bg);width:min(1160px,94vw);max-width:94vw;max-height:92vh;padding:24px;border:1px solid var(--ls-line);border-radius:16px;overflow:auto;font:16px/1.6 system-ui,sans-serif;box-sizing:border-box}
+#learningStatsPanel.ls-dark{--ls-bg:#101c2a;--ls-fg:#e0edf8;--ls-line:#3d5368;--ls-accent:#9cddd6}
+#learningStatsPanel::backdrop{background:#030810bd}
+#learningStatsPanel *{box-sizing:border-box}
+#learningStatsPanel h2,#learningStatsPanel h3{margin:0 0 12px;color:inherit;font-family:inherit}
+#learningStatsPanel header,#learningStatsPanel .ls-row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+#learningStatsPanel header{justify-content:space-between;position:sticky;top:-24px;background:var(--ls-bg);z-index:2;padding:12px 0;border-bottom:1px solid var(--ls-line)}
+#learningStatsPanel summary{cursor:pointer;font-weight:600;padding:8px 0}
+#learningStatsPanel button,#learningStatsPanel input,#learningStatsPanel select{font:inherit;color:inherit;background:var(--ls-bg);border:1px solid var(--ls-line);border-radius:7px;padding:7px 12px;max-width:100%;height:auto;letter-spacing:normal}
+#learningStatsPanel button{cursor:pointer}
+#learningStatsPanel button:disabled{opacity:.5;cursor:default}
+#learningStatsPanel button:focus-visible,#learningStatsPanel input:focus-visible,#learningStatsPanel select:focus-visible{outline:3px solid var(--ls-accent);outline-offset:2px}
+#learningStatsPanel label{display:block;margin:8px 0}
+#learningStatsPanel textarea{display:block;width:100%;font:inherit;color:inherit;background:var(--ls-bg);border:1px solid var(--ls-line);padding:10px;resize:vertical}
+#lsWeakSection{scroll-margin-top:80px}
+#lsWeakList .ls-card{margin:12px 0}
+#learningStatsPanel label input[type=checkbox]{width:auto;margin-right:7px}
+#learningStatsPanel .ls-section{border-top:1px solid var(--ls-line);padding-top:20px;margin-top:20px}
+#learningStatsPanel .ls-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin:18px 0}
+#learningStatsPanel .ls-card{border:1px solid var(--ls-line);border-radius:10px;padding:14px}
+#learningStatsPanel .ls-number{display:block;font-size:28px;color:var(--ls-accent)}
+#learningStatsPanel .ls-note{font-size:14px;opacity:.85}
+#learningStatsPanel .ls-charts{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+#learningStatsPanel svg{display:block;width:100%;height:180px;color:var(--ls-accent)}
+#learningStatsPanel .ls-scroll{overflow:auto;max-height:400px}
+#learningStatsPanel table{width:100%;border-collapse:collapse;font:14px/1.5 system-ui}
+#learningStatsPanel th,#learningStatsPanel td{border-bottom:1px solid var(--ls-line);padding:10px;text-align:left;white-space:nowrap}
+#learningStatsPanel .ls-tags{display:flex;flex-wrap:wrap;gap:4px 14px;max-height:140px;overflow:auto;border:1px solid var(--ls-line);padding:8px}
+#learningStatsPanel .ls-tags label{font-size:14px;margin:2px}
+#learningStatsPanel progress{width:100%;accent-color:var(--ls-accent)}
+#learningStatsPanel #lsMessage{min-height:24px;color:var(--ls-accent)}
+#learningTimerDock{position:fixed;right:20px;bottom:18px;z-index:10000;background:#162638;color:#e3faf7;border:1px solid #729aab;border-radius:10px;padding:8px 12px;font:14px system-ui;display:flex;align-items:center;gap:10px;max-width:90vw;box-shadow:0 4px 18px #0005}
+#learningTimerDock[hidden]{display:none}
+#learningTimerDock button{font:inherit;color:inherit;background:transparent;border:1px solid #729aab;border-radius:5px;padding:4px 8px;cursor:pointer}
+.learning-stats-entry{font:inherit;margin:6px 0;padding:8px 12px;cursor:pointer}
+@media(max-width:780px){#learningStatsPanel{padding:16px}#learningStatsPanel .ls-grid{grid-template-columns:1fr 1fr}#learningStatsPanel .ls-charts{grid-template-columns:1fr}}
